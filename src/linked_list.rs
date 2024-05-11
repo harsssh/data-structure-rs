@@ -32,12 +32,13 @@ impl<T> LinkedList<T> {
     }
     pub fn push_front(&mut self, data: T) {
         let LinkedList { head, tail } = self;
-        let mut new_node = Node::new(data);
+        let rc = Rc::new(RefCell::new(Node::new(data)));
+        let mut new_node = rc.borrow_mut();
         if let Some(node) = head {
             new_node.next = Some(node.clone());
-            *head = Some(Rc::new(RefCell::new(new_node)));
+            node.borrow_mut().prev = Some(rc.clone());
+            *head = Some(rc.clone())
         } else {
-            let rc = Rc::new(RefCell::new(new_node));
             *head = Some(rc.clone());
             *tail = Some(rc.clone());
         }
