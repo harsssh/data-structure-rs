@@ -45,7 +45,17 @@ impl<T> LinkedList<T> {
     }
 
     pub fn push_back(&mut self, data: T) {
-        unimplemented!()
+        let LinkedList { head, tail } = self;
+        let rc = Rc::new(RefCell::new(Node::new(data)));
+        let mut new_node = rc.borrow_mut();
+        if let Some(node) = tail {
+            new_node.prev = Some(node.clone());
+            node.borrow_mut().next = Some(rc.clone());
+            *tail = Some(rc.clone())
+        } else {
+            *head = Some(rc.clone());
+            *tail = Some(rc.clone());
+        }
     }
 
     pub fn pop_front(&mut self) -> Option<T> {
