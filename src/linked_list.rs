@@ -10,12 +10,13 @@ pub struct LinkedList<T> {
 #[derive(Debug, PartialEq)]
 struct Node<T> {
     data: T,
+    prev: Option<Rc<RefCell<Node<T>>>>,
     next: Option<Rc<RefCell<Node<T>>>>,
 }
 
 impl<T> Node<T> {
     fn new(data: T) -> Node<T> {
-        Node { data, next: None }
+        Node { data, prev: None, next: None }
     }
 }
 
@@ -31,13 +32,14 @@ impl<T> LinkedList<T> {
     }
     pub fn push_front(&mut self, data: T) {
         let LinkedList { head, tail } = self;
+        let mut new_node = Node::new(data);
         if let Some(node) = head {
-            let new_node = Node { data, next: Some(node.clone()) };
+            new_node.next = Some(node.clone());
             *head = Some(Rc::new(RefCell::new(new_node)));
         } else {
-            let rc = Rc::new(RefCell::new(Node::new(data)));
+            let rc = Rc::new(RefCell::new(new_node));
             *head = Some(rc.clone());
-            *tail = Some(rc);
+            *tail = Some(rc.clone());
         }
     }
 
@@ -76,7 +78,12 @@ mod tests {
         let head = list.head.as_ref().unwrap();
         assert_eq!(head.borrow().data, 3);
         assert_eq!(head.borrow().next.as_ref().unwrap().borrow().data, 2);
-        assert_eq!(list.tail.as_ref().unwrap().borrow().data, 1);
+        assert_eq!(head.borrow().next.as_ref().unwrap().borrow().next.as_ref().unwrap().borrow().data, 1);
+
+        let tail = list.tail.as_ref().unwrap();
+        assert_eq!(tail.borrow().data, 1);
+        assert_eq!(tail.borrow().prev.as_ref().unwrap().borrow().data, 2);
+        assert_eq!(tail.borrow().prev.as_ref().unwrap().borrow().prev.as_ref().unwrap().borrow().data, 3);
     }
 
     #[test]
@@ -89,7 +96,12 @@ mod tests {
         let head = list.head.as_ref().unwrap();
         assert_eq!(head.borrow().data, 1);
         assert_eq!(head.borrow().next.as_ref().unwrap().borrow().data, 2);
-        assert_eq!(list.tail.as_ref().unwrap().borrow().data, 3);
+        assert_eq!(head.borrow().next.as_ref().unwrap().borrow().next.as_ref().unwrap().borrow().data, 3);
+
+        let tail = list.tail.as_ref().unwrap();
+        assert_eq!(tail.borrow().data, 3);
+        assert_eq!(tail.borrow().prev.as_ref().unwrap().borrow().data, 2);
+        assert_eq!(tail.borrow().prev.as_ref().unwrap().borrow().prev.as_ref().unwrap().borrow().data, 1);
     }
 
     #[test]
