@@ -10,8 +10,8 @@ pub struct LinkedList<T> {
 #[derive(Debug, PartialEq)]
 struct Node<T> {
     data: T,
-    prev: Option<Rc<RefCell<Node<T>>>>,
-    next: Option<Rc<RefCell<Node<T>>>>,
+    prev: Option<Rc<RefCell<Self>>>,
+    next: Option<Rc<RefCell<Self>>>,
 }
 
 impl<T> Node<T> {
@@ -59,7 +59,15 @@ impl<T> LinkedList<T> {
     }
 
     pub fn pop_front(&mut self) -> Option<T> {
-        unimplemented!()
+        self.head.take().map(|head| {
+            if let Some(next) = head.borrow().next.as_ref() {
+                next.borrow_mut().prev = None;
+                self.head = Some(next.clone());
+            } else {
+                self.tail = None;
+            }
+            Rc::try_unwrap(head).ok().unwrap().into_inner().data
+        })
     }
 
     pub fn pop_back(&mut self) -> Option<T> {
