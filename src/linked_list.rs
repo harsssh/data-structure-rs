@@ -71,7 +71,15 @@ impl<T> LinkedList<T> {
     }
 
     pub fn pop_back(&mut self) -> Option<T> {
-        unimplemented!()
+        self.tail.take().map(|tail| {
+            if let Some(prev) = tail.borrow().prev.as_ref() {
+                prev.borrow_mut().next = None;
+                self.tail = Some(prev.clone());
+            } else {
+                self.head = None;
+            }
+            Rc::try_unwrap(tail).ok().unwrap().into_inner().data
+        })
     }
 }
 
