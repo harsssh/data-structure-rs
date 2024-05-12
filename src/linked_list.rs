@@ -26,10 +26,21 @@ impl<T> Default for LinkedList<T> {
     }
 }
 
+impl<T, const N: usize> From<[T; N]> for LinkedList<T> {
+    fn from(array: [T; N]) -> Self {
+        let mut list = LinkedList::new();
+        for item in array {
+            list.push_back(item)
+        }
+        list
+    }
+}
+
 impl<T> LinkedList<T> {
     pub fn new() -> LinkedList<T> {
         LinkedList { head: None, tail: None }
     }
+
     pub fn push_front(&mut self, data: T) {
         let LinkedList { head, tail } = self;
         let rc = Rc::new(RefCell::new(Node::new(data)));
